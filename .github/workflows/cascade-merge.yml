@@ -1,0 +1,24 @@
+# Merge production branch back into develop branch after publishing a release.
+name: 'Cascade Merge'
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Merge
+      uses: robotology/gh-action-nightly-merge@v1.2.0
+      with:
+        stable_branch: 'master'
+        development_branch: 'develop'
+        allow_ff: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

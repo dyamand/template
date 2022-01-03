@@ -1,0 +1,59 @@
+pluginManagement {
+	resolutionStrategy {
+		eachPlugin {
+			def pluginsAvailable = new File("${rootDir}/cnf/gradle/plugins").exists()
+			if (requested.id.id == 'org.dyamand' && !pluginsAvailable) {
+				println 'Ignoring resolution request for org.dyamand plugins because the workspace has not been initialized. Run gradle initWorkspace to initialize.'
+				useModule('com.netflix.nebula:gradle-nothing-plugin:2.0.7')
+			}
+		}
+	}
+}
+def executingTasks = gradle.startParameter.taskNames
+if(executingTasks.contains('initWorkspace')) {
+	return
+}
+
+// add cnf project
+def cnfDir = "${rootDir}/cnf"
+if (new File(cnfDir).exists()) {
+	include "cnf"
+}
+
+// add gradle plugins project to build
+def gradlePluginsDir = "${rootDir}/cnf/gradle/plugins"
+if (new File(gradlePluginsDir).exists()) {
+	includeBuild(gradlePluginsDir)
+}
+// If in a subdirectory, only include that project
+if(rootDir != startParameter.currentDir) {
+	include startParameter.currentDir.name
+} else {
+	// if in the root directory, include all subdirectories that have a bnd.bnd file
+	rootDir.eachDir() { dir ->
+		if(new File(dir, 'bnd.bnd').exists()) {
+			include dir.name
+		}
+	}
+}
+
+// clean should not be run together with other tasks
+if(executingTasks.size() != 1 && executingTasks.contains('clean')) {
+	throw new GradleException('Please do not run clean together with other tasks, running clean with other tasks does not allow the R5 repositories to be populated before the other tasks are configured')
+}
+// only execute when not already executing createR5Repositories (also do not execute if clean is the only task to be executed)
+def createRepos = 'createR5Repositories'
+if(!executingTasks.contains(createRepos) && !executingTasks.contains('clean') && !executingTasks.contains('initWorkspace') && !executingTasks.contains('updateWorkspace')) {
+	println 'Generating R5 Repositories'
+	def output = new ByteArrayOutputStream()
+	try {
+		def action = exec {
+			commandLine './gradlew', '--no-daemon', '--stacktrace', createRepos
+			standardOutput = output
+			errorOutput = output
+		}
+	} catch(e) {
+		println output
+	}
+	println 'R5 repositories generated'
+}

@@ -1,0 +1,125 @@
+plugins {
+    id 'org.dyamand' version '0' apply false
+    id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
+}
+def cnf = project.file('cnf')
+def workspaceOK = cnf.isDirectory() && project.file('cnf/build.bnd').exists()
+
+tasks.register("initWorkspace") {
+  doLast {
+    File gitDir = project.file(".git")
+    if(!gitDir.exists()) {
+      println 'Initializing git repo'
+      executeWithOutput('git init')
+    }
+    def dyamandWorkspace = '../dyamand-bndtools-workspace.git'
+    if(!cnf.exists()) {
+      println "The workspace does not exist, initializing workspace from ${dyamandWorkspace}"
+      executeWithOutput("git submodule add ${dyamandWorkspace} cnf")
+    }
+    // cnf exists
+    // check whether or not it already is a subcomponent
+    if(cnf.isDirectory()) {
+      executeWithOutput('git submodule init')
+      executeWithOutput('git submodule update')
+    } else {
+      throw new IllegalStateException("Cannot initialize workspace: cnf exists, but it is not a directory. Consider removing cnf")
+    }
+  }
+}
+
+if(workspaceOK) {
+  apply plugin: 'org.dyamand'
+  def extFile = new File('ext.gradle')
+  if(extFile.exists()) {
+    apply from: extFile
+  }
+
+  allprojects {
+	configurations {
+		testR5
+		compileR5
+		runtimeR5
+	}
+  } 
+
+  def osgiTestVersion = "1.0.0"
+  def vertxVersion = "3.9.7"
+  def junit5Version = "5.7.2"
+  dependencies {
+	/* General testing dependencies.*/
+	testR5 "org.assertj:assertj-core:3.20.2"
+	/* OSGi integration tests.*/
+	testR5 "org.junit.jupiter:junit-jupiter-engine:${junit5Version}"
+	testR5 "org.junit.jupiter:junit-jupiter-api:${junit5Version}"
+	testR5 "org.junit.jupiter:junit-jupiter-params:${junit5Version}"
+	testR5 "biz.aQute.bnd:biz.aQute.tester.junit-platform:5.3.0"
+	testR5 "org.osgi:org.osgi.test.common:${osgiTestVersion}"
+	testR5 "org.osgi:org.osgi.test.junit5:${osgiTestVersion}"
+	testR5 "org.osgi:org.osgi.test.assertj.framework:${osgiTestVersion}"
+	testR5 "org.osgi:org.osgi.test.assertj.promise:${osgiTestVersion}"
+	/* General.*/
+	compileR5 "com.google.code.findbugs:jsr305:3.0.2"
+	compileR5 "com.diffplug.osgi:com.diffplug.osgi.extension.sun.misc:0.0.0"
+	/* OSGi(API).*/
+	compileR5 "org.osgi:org.osgi.annotation.bundle:1.1.0"
+	compileR5 "org.osgi:org.osgi.annotation.versioning:1.1.1"
+	compileR5 "org.osgi:org.osgi.dto:1.1.1"
+	// OSGi R7
+	compileR5 "org.osgi:org.osgi.framework:1.10.0"
+	compileR5 "org.osgi:org.osgi.service.cm:1.6.0"
+	compileR5 "org.osgi:org.osgi.service.component:1.4.0"
+	compileR5 "org.osgi:org.osgi.service.component.annotations:1.4.0"
+	// Felix does not support v1.5 just yet
+	compileR5 "org.osgi:org.osgi.service.log:1.4.0"
+	compileR5 "org.osgi:org.osgi.service.metatype:1.4.0"
+	compileR5 "org.osgi:org.osgi.service.metatype.annotations:1.4.0"
+	compileR5 "org.osgi:org.osgi.util.tracker:1.5.3"
+	/* OSGi (runtime).*/
+	runtimeR5 "org.apache.felix:org.apache.felix.configadmin:1.9.22"
+	runtimeR5 "org.apache.felix:org.apache.felix.framework:7.0.1"
+	runtimeR5 "org.apache.felix:org.apache.felix.log:1.2.4"
+	runtimeR5 "org.apache.felix:org.apache.felix.metatype:1.2.4"
+	runtimeR5 "org.apache.felix:org.apache.felix.scr:2.1.30"
+	runtimeR5 "org.apache.felix:org.apache.felix.shell:1.4.3"
+	runtimeR5 "org.apache.felix:org.apache.felix.shell.remote:1.2.0"
+	runtimeR5 "org.osgi:org.osgi.resource:1.0.1"
+	runtimeR5 "org.osgi:org.osgi.util.converter:1.0.8"
+	runtimeR5 "org.osgi:org.osgi.util.function:1.2.0"
+	runtimeR5 "org.osgi:org.osgi.util.promise:1.2.0"
+	runtimeR5 "org.osgi:org.osgi.util.pushstream:1.0.2"
+	/* Logging APIs.*/
+	compileR5 "org.slf4j:slf4j-api:1.7.30"
+	/* Logging implementations.*/
+	runtimeR5 "org.osgi:slf4j.osgi:1.7.0"
+	/* Gogo.*/
+	runtimeR5 "org.apache.felix:org.apache.felix.gogo.command:1.1.2"
+	runtimeR5 "org.apache.felix:org.apache.felix.gogo.runtime:1.1.4"
+	runtimeR5 "org.apache.felix:org.apache.felix.gogo.shell:1.1.4"
+	/* Prometheus for Vertx with metrics.*/
+	runtimeR5 "io.prometheus:simpleclient_common:0.10.0"
+	runtimeR5 "io.prometheus:simpleclient:0.10.0"
+	/* Vert.x.*/
+	compileR5 "io.vertx:vertx-core:${vertxVersion}"
+	compileR5 "io.vertx:vertx-circuit-breaker:${vertxVersion}"
+	compileR5 "io.vertx:vertx-jwt:${vertxVersion}"
+	compileR5 "io.vertx:vertx-redis-client:${vertxVersion}"
+	compileR5 "io.vertx:vertx-web:${vertxVersion}"
+	compileR5 "io.reactivex.rxjava2:rxjava:2.2.21"
+  }
+}
+
+def executeWithOutput(String command) {
+  def proc = command.execute()
+  def out = new StringBuilder()
+  def err = new StringBuilder()
+  proc.consumeProcessOutput(out, err)
+  proc.waitForOrKill(5000)
+  println "$out"
+  println "$err"
+  def exitValue = proc.exitValue()
+  if(exitValue != 0) {
+    throw new IllegalStateException("${command} exited with exit value ${exitValue}")
+  }
+}
+

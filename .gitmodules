@@ -1,0 +1,3 @@
+[submodule "cnf"]
+	path = cnf
+	url = ../dyamand-bndtools-workspace.git

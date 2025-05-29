@@ -76,7 +76,7 @@ if(workspaceOK) {
 	compileR5 "org.osgi:org.osgi.service.metatype.annotations:1.4.0"
 	compileR5 "org.osgi:org.osgi.util.tracker:1.5.3"
 	/* OSGi (runtime).*/
-	runtimeR5 "org.apache.felix:org.apache.felix.configadmin:1.9.22"
+	runtimeR5 "org.apache.felix:org.apache.felix.configadmin:1.9.26"
 	runtimeR5 "org.apache.felix:org.apache.felix.framework:7.0.1"
 	runtimeR5 "org.apache.felix:org.apache.felix.log:1.2.4"
 	runtimeR5 "org.apache.felix:org.apache.felix.metatype:1.2.4"

@@ -62,7 +62,7 @@ if(workspaceOK) {
 	compileR5 "com.google.code.findbugs:jsr305:3.0.2"
 	compileR5 "com.diffplug.osgi:com.diffplug.osgi.extension.sun.misc:0.0.0"
 	/* OSGi(API).*/
-	compileR5 "org.osgi:org.osgi.annotation.bundle:1.1.0"
+	compileR5 "org.osgi:org.osgi.annotation.bundle:1.1.1"
 	compileR5 "org.osgi:org.osgi.annotation.versioning:1.1.1"
 	compileR5 "org.osgi:org.osgi.dto:1.1.1"
 	// OSGi R7

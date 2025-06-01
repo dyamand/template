@@ -94,7 +94,7 @@ if(workspaceOK) {
 	runtimeR5 "org.osgi:slf4j.osgi:1.7.0"
 	/* Gogo.*/
 	runtimeR5 "org.apache.felix:org.apache.felix.gogo.command:1.1.2"
-	runtimeR5 "org.apache.felix:org.apache.felix.gogo.runtime:1.1.4"
+	runtimeR5 "org.apache.felix:org.apache.felix.gogo.runtime:1.1.6"
 	runtimeR5 "org.apache.felix:org.apache.felix.gogo.shell:1.1.4"
 	/* Prometheus for Vertx with metrics.*/
 	runtimeR5 "io.prometheus:simpleclient_common:0.10.0"
